@@ -53,8 +53,11 @@ $env:NODE_OPTIONS="--use-system-ca"; npx convex dev
 | Vercel Production | prod | `CONVEX_DEPLOY_KEY` (Production 키) |
 | Vercel Preview | 사용하지 않음 | |
 
-1. GitHub 저장소를 Vercel에서 Import
-2. Build Command: `npx convex deploy --cmd 'npm run build'`
-   - Convex 함수와 화면이 한 번에 함께 배포된다. `VITE_CONVEX_URL`은 이 명령이 자동으로 넣어 준다.
-3. 환경 변수 `CONVEX_DEPLOY_KEY`: Convex 대시보드 → (운영 배포 선택) Settings → Deploy Keys에서 Production 키를 발급해 **Production 환경에만** 등록
-4. 배포 뒤 확인: 배포 주소의 화면이 운영 배포에 연결되었는지 (개발 데이터가 보이지 않는지)
+빌드 설정은 `vercel.json`에 있다 (대시보드에서 따로 바꾸지 않는다).
+빌드 명령 `npx convex deploy --cmd 'npm run build' ...`가 Convex 함수와 화면을 한 번에 배포하고, `VITE_CONVEX_URL`도 자동으로 넣어 준다.
+
+1. Convex 대시보드 → 프로젝트 → 위쪽 배포 선택에서 **Production** → Settings → **Generate Production Deploy Key** → 복사
+2. Vercel → Add New → Project → GitHub 저장소 Import
+3. Environment Variables에 `CONVEX_DEPLOY_KEY` = 복사한 키 → Deploy
+4. 배포 뒤 Vercel → Settings → Environment Variables에서 `CONVEX_DEPLOY_KEY`가 **Production에만** 체크되어 있는지 확인 (Preview, Development 해제)
+5. 확인: 배포 주소에서 방을 만들 수 있는지. 운영 배포라 개발 중 만든 방은 보이지 않는다
