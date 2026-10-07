@@ -54,6 +54,12 @@ export default function Game({ sessionId, room }: { sessionId: string; room: Roo
       )}
 
       {game.phase !== 'done' && <TurnStrip game={game} />}
+
+      {/* 게임은 가로 화면 전용. 세로로 들면 CSS가 이 안내를 덮어씌운다. */}
+      <div className="rotate-hint" aria-hidden>
+        <span className="rotate-icon">↻</span>
+        <p>iPad를 가로로 돌려 주세요</p>
+      </div>
     </main>
   )
 }

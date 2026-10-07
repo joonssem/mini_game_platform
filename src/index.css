@@ -532,8 +532,34 @@ input {
   gap: 16px;
 }
 
-/* 세로 화면: 앞 칸을 위쪽에 가로로 */
-@media (orientation: portrait), (max-width: 700px) {
+.rotate-hint {
+  display: none;
+}
+
+/* 게임은 가로 화면 전용 (교사 결정). 세로 화면이면 안내로 덮는다. */
+@media (orientation: portrait) and (pointer: coarse) {
+  .rotate-hint {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: var(--bg);
+    font-size: 26px;
+    font-weight: 700;
+  }
+
+  .rotate-icon {
+    font-size: 72px;
+    color: var(--accent);
+  }
+}
+
+/* 좁은 창(PC 브라우저를 좁힌 경우): 앞 칸을 위쪽에 가로로 */
+@media (max-width: 700px) {
   .turn-layout {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr);
