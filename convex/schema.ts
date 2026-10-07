@@ -37,6 +37,18 @@ export default defineSchema({
     startedAt: v.number(),
   }).index("by_room", ["roomId"]),
 
+  // 획 하나가 문서 하나. 실시간 구경과 공개 화면이 같은 데이터를 쓴다.
+  strokes: defineTable({
+    gameId: v.id("games"),
+    turn: v.number(),
+    /** 화면이 보낸 임시 id. 화면은 이 값으로 "보낸 획이 서버에 도착했는지" 안다. */
+    clientId: v.string(),
+    color: v.string(),
+    width: v.number(),
+    /** [x0, y0, x1, y1, ...] 그림판 너비·높이에 대한 비율 */
+    points: v.array(v.number()),
+  }).index("by_game_turn", ["gameId", "turn"]),
+
   players: defineTable({
     roomId: v.id("rooms"),
     sessionId: v.string(),

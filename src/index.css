@@ -30,6 +30,7 @@ body,
 }
 
 body {
+  touch-action: manipulation;
   /* iPad Safari: 당겨서 새로고침, 길게 눌러 선택 방지 */
   overscroll-behavior: none;
   -webkit-user-select: none;
@@ -332,21 +333,6 @@ input {
   color: var(--ink);
 }
 
-.canvas-placeholder {
-  aspect-ratio: 4 / 3;
-  width: 100%;
-  max-height: 60vh;
-  border: 2px dashed var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 22px;
-}
-
 .next-up {
   font-size: 28px;
   font-weight: 800;
@@ -394,4 +380,138 @@ input {
 .turn-number {
   font-size: 14px;
   color: var(--muted);
+}
+
+/* ---------- 그림판 ---------- */
+
+.drawing {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.drawing.editable {
+  border-color: var(--accent);
+}
+
+.drawing canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  /* 그림판에서는 스크롤, 확대, 더블탭 확대가 일어나지 않게 */
+  touch-action: none;
+}
+
+.turn-layout {
+  display: grid;
+  grid-template-columns: minmax(160px, 26%) 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.turn-layout.no-previous {
+  grid-template-columns: 1fr;
+}
+
+.turn-layout .current {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  /* 화면 높이 안에 그림판과 도구가 다 들어오게 */
+  max-width: calc((100vh - 300px) * 4 / 3);
+  width: 100%;
+  justify-self: center;
+}
+
+.previous {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.panel {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.panel.small {
+  width: 70%;
+}
+
+.panel figcaption {
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.watching {
+  margin: 0;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  justify-content: center;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.colors,
+.tools {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.swatch {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 0 2px var(--line);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.swatch.selected {
+  box-shadow: 0 0 0 3px var(--ink);
+}
+
+.comic {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 700px), (orientation: portrait) {
+  .turn-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .previous {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .previous .panel {
+    width: 40%;
+    flex-shrink: 0;
+  }
+
+  .turn-layout .current {
+    max-width: none;
+  }
 }

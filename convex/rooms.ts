@@ -257,6 +257,8 @@ export const myRoom = query({
   },
 });
 
+/** 24시간 뒤 방과 게임, 그림을 지운다. 학생이 모두 나가 방이 먼저 지워져도 게임과 그림은
+ * 교사 페이지에서 내려받을 수 있도록 이때까지 남겨 둔다. */
 export const deleteRoom = internalMutation({
   args: { roomId: v.id("rooms") },
   handler: async (ctx, { roomId }) => {
@@ -265,7 +267,14 @@ export const deleteRoom = internalMutation({
       .query("games")
       .withIndex("by_room", (q) => q.eq("roomId", roomId))
       .collect();
-    for (const game of games) await ctx.db.delete(game._id);
+    for (const game of games) {
+      const strokes = await ctx.db
+        .query("strokes")
+        .withIndex("by_game_turn", (q) => q.eq("gameId", game._id))
+        .collect();
+      for (const stroke of strokes) await ctx.db.delete(stroke._id);
+      await ctx.db.delete(game._id);
+    }
     if (await ctx.db.get(roomId)) await ctx.db.delete(roomId);
   },
 });
