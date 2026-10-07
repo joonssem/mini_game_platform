@@ -1,20 +1,25 @@
 import { useQuery } from 'convex/react'
+import { useState } from 'react'
 import { api } from '../convex/_generated/api'
+import { getSessionId } from './session'
+import { useHeartbeat } from './useHeartbeat'
+import Home from './screens/Home'
+import Lobby from './screens/Lobby'
+import Playing from './screens/Playing'
 
 export default function App() {
-  const ping = useQuery(api.health.ping)
+  const [sessionId] = useState(getSessionId)
+  const room = useQuery(api.rooms.myRoom, { sessionId })
+  useHeartbeat(sessionId, !!room)
 
-  return (
-    <main className="center">
-      <h1>이어 그리기</h1>
-      <p className="muted">M0 · 연결 확인</p>
-      {ping === undefined ? (
-        <p>서버에 연결하는 중…</p>
-      ) : (
-        <p>
-          ✅ 서버 연결됨 · {new Date(ping.serverTime).toLocaleTimeString('ko-KR')}
-        </p>
-      )}
-    </main>
-  )
+  if (room === undefined) {
+    return (
+      <main className="screen center">
+        <p className="muted">연결하는 중…</p>
+      </main>
+    )
+  }
+  if (room === null) return <Home sessionId={sessionId} />
+  if (room.status === 'lobby') return <Lobby sessionId={sessionId} room={room} />
+  return <Playing sessionId={sessionId} room={room} />
 }
