@@ -6,7 +6,7 @@
 
 | 항목 | 내용 |
 |---|---|
-| Convex | 무료 플랜. 이전 수업 활동과 같은 계정에 이 게임용 **새 프로젝트**를 만든다 |
+| Convex | 무료 플랜. 이전 수업 활동과 같은 계정에 새 프로젝트 `mini-game-platform`을 만듦. 개발 배포 지역: **ap-southeast-2 (호주 시드니)** — 국외 처리 확인 시 참고 |
 | Vercel | 개인 Hobby (무료) |
 | GitHub ↔ Vercel | 같은 GitHub 계정으로 연결됨. 새 저장소를 바로 Import할 수 있다 |
 
