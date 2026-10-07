@@ -43,3 +43,6 @@ export const STROKE_GRACE_MS = 2_000;
 export const TEACHER_SESSION_MS = 12 * 60 * 60 * 1000;
 export const TEACHER_MAX_FAILURES = 10;
 export const TEACHER_LOCK_MS = 15 * 60 * 1000;
+
+/** 기록(로그) 보관 기간. 그림과 번호는 기록에 없다. */
+export const EVENT_TTL_MS = 30 * 24 * 60 * 60 * 1000;

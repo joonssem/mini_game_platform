@@ -172,14 +172,19 @@ events   type, roomId, gameId, at, data
 
 ### 기록 (로그)
 
-다음 이벤트를 시각과 함께 저장한다. 교사 대시보드는 만들지 않고, 개발자가 Convex 대시보드에서 직접 확인한다.
+다음 이벤트를 시각과 함께 저장한다 (`convex/events.ts`). 교사 대시보드는 만들지 않는다.
 
-`room_created` `player_joined` `game_started` `turn_started` `turn_submitted`(완료/시간 초과 구분) `player_disconnected` `player_reconnected` `game_revealed` `rematch_started` `player_left`
+`room_created` `player_joined` `seat_taken_over` `player_left` `player_reconnected`(신호가 20초 넘게 끊겼다가 돌아옴) `game_started`(다시 하기 여부 포함) `topic_rerolled` `turn_submitted`(완료/시간 초과, 걸린 시간, 획 수) `turn_skipped`(자리 비움/나감/혼자 남음) `game_revealed`(한 판 걸린 시간) `back_to_lobby`
+
+- 출석번호, sessionId, 그림은 기록에 넣지 않는다. 방과 게임 id로만 묶는다.
+- 기록은 30일 보관하고 매일 cron이 지운다.
+- 요약은 개발자가 실행한다: `npx convex run events:summary '{"days": 7}' --prod`
+  (방 수, 시작·완료 판 수, 다시 하기 수, 평균 한 판·한 칸 시간, 일찍 완료/시간 초과, 빈 칸, 재접속, 게임 중 나감)
 
 ## 9. 개인정보와 보안
 
 - 이름, 계정, 비밀번호를 받지 않는다. 서버에는 출석번호와 무작위 sessionId만 저장한다.
-- 방, 그림, 참가자 데이터는 **24시간 뒤 자동 삭제**한다 (Convex cron). 로그에는 그림을 남기지 않는다.
+- 방, 그림, 참가자 데이터는 **24시간 뒤 자동 삭제**한다 (방을 만들 때 예약). 기록(로그)에는 그림과 번호를 남기지 않고 30일 보관한다.
 - 그림은 같은 방 밖으로 공유되지 않는다. 학생 화면에는 저장, 내보내기, 갤러리 기능이 없다. 교사만 교사 페이지에서 24시간 안에 내려받을 수 있다.
 - 비밀값은 저장소에 넣지 않는다. `.env.local`은 `.gitignore`에 넣는다.
 - 외부 분석 도구나 광고 스크립트를 넣지 않는다.

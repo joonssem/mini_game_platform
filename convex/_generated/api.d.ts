@@ -9,6 +9,8 @@
  */
 
 import type * as constants from "../constants.js";
+import type * as crons from "../crons.js";
+import type * as events from "../events.js";
 import type * as games from "../games.js";
 import type * as rooms from "../rooms.js";
 import type * as strokes from "../strokes.js";
@@ -23,6 +25,8 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   constants: typeof constants;
+  crons: typeof crons;
+  events: typeof events;
   games: typeof games;
   rooms: typeof rooms;
   strokes: typeof strokes;

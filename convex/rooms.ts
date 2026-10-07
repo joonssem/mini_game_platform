@@ -19,6 +19,7 @@ import {
   TAKEOVER_AFTER_MS,
   TURN_SECONDS_OPTIONS,
 } from "./constants";
+import { logEvent } from "./events";
 import { startGame } from "./games";
 
 // 방 만들기, 입장, 대기실, 방장. 규칙은 docs/PRD.md 5장, 6장.
@@ -51,6 +52,7 @@ async function removePlayer(ctx: MutationCtx, player: Doc<"players">) {
   await ctx.db.delete(player._id);
   const room = await ctx.db.get(player.roomId);
   if (!room) return;
+  await logEvent(ctx, "player_left", { roomId: room._id, gameId: room.currentGameId }, { status: room.status });
   const rest = await roomPlayers(ctx, room._id);
   if (rest.length === 0) {
     await ctx.db.delete(room._id);
@@ -121,6 +123,7 @@ export const create = mutation({
       createdAt: now,
     });
     await ctx.db.insert("players", { roomId, sessionId, number, joinedAt: now, lastSeenAt: now });
+    await logEvent(ctx, "room_created", { roomId });
     await ctx.scheduler.runAfter(ROOM_TTL_MS, internal.rooms.deleteRoom, { roomId });
     return { code };
   },
@@ -154,6 +157,7 @@ export const join = mutation({
       if (mine) await removePlayer(ctx, mine);
       await detachSession(ctx, sessionId, room._id);
       await ctx.db.patch(sameNumber._id, { sessionId, lastSeenAt: now });
+      await logEvent(ctx, "seat_taken_over", { roomId: room._id }, { status: room.status });
       const fresh = await ctx.db.get(room._id);
       if (fresh?.hostSessionId === sameNumber.sessionId) {
         await ctx.db.patch(room._id, { hostSessionId: sessionId });
@@ -173,6 +177,7 @@ export const join = mutation({
 
     await detachSession(ctx, sessionId);
     await ctx.db.insert("players", { roomId: room._id, sessionId, number, joinedAt: now, lastSeenAt: now });
+    await logEvent(ctx, "player_joined", { roomId: room._id }, { playerCount: players.length + 1 });
     return { code };
   },
 });
@@ -192,6 +197,10 @@ export const heartbeat = mutation({
     const player = await myPlayer(ctx, sessionId);
     if (!player) return;
     const now = Date.now();
+    // 연결이 끊겼다가(신호가 20초 넘게 없다가) 돌아온 경우를 기록한다.
+    if (now - player.lastSeenAt >= TAKEOVER_AFTER_MS) {
+      await logEvent(ctx, "player_reconnected", { roomId: player.roomId }, { gapMs: now - player.lastSeenAt });
+    }
     await ctx.db.patch(player._id, { lastSeenAt: now });
     const room = await ctx.db.get(player.roomId);
     if (room) await pruneLobby(ctx, room, now);
@@ -218,7 +227,7 @@ export const start = mutation({
       (p) => now - p.lastSeenAt < AWAY_AFTER_MS,
     );
     if (active.length < MIN_PLAYERS) fail(`${MIN_PLAYERS}명 이상 모여야 시작할 수 있어요.`);
-    await startGame(ctx, room, active);
+    await startGame(ctx, room, active, false);
   },
 });
 
@@ -233,7 +242,7 @@ export const rematch = mutation({
       (p) => now - p.lastSeenAt < AWAY_AFTER_MS,
     );
     if (active.length < MIN_PLAYERS) fail(`${MIN_PLAYERS}명 이상 있어야 시작할 수 있어요.`);
-    await startGame(ctx, room, active);
+    await startGame(ctx, room, active, true);
   },
 });
 
@@ -243,6 +252,7 @@ export const backToLobby = mutation({
   handler: async (ctx, { sessionId }) => {
     const room = await requireHost(ctx, sessionId);
     await ctx.db.patch(room._id, { status: "lobby" });
+    await logEvent(ctx, "back_to_lobby", { roomId: room._id }, { from: room.status });
   },
 });
 

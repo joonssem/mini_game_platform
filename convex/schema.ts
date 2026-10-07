@@ -49,6 +49,15 @@ export default defineSchema({
     lockedUntil: v.number(),
   }),
 
+  // 기록(로그). 출석번호, sessionId, 그림은 넣지 않는다. 30일 보관.
+  events: defineTable({
+    type: v.string(),
+    at: v.number(),
+    roomId: v.optional(v.id("rooms")),
+    gameId: v.optional(v.id("games")),
+    data: v.record(v.string(), v.union(v.string(), v.number(), v.boolean())),
+  }).index("by_at", ["at"]),
+
   // 획 하나가 문서 하나. 실시간 구경과 공개 화면이 같은 데이터를 쓴다.
   strokes: defineTable({
     gameId: v.id("games"),

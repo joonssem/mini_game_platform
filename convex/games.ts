@@ -3,6 +3,7 @@ import { internal } from "./_generated/api";
 import type { Doc } from "./_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx } from "./_generated/server";
 import { AWAY_AFTER_MS, INTRO_MS } from "./constants";
+import { logEvent } from "./events";
 import { TOPICS } from "./topics";
 
 // 차례 진행과 서버 타이머. 규칙은 docs/PRD.md 4장, 6장.
@@ -36,7 +37,12 @@ async function schedule(ctx: MutationCtx, game: Pick<Doc<"games">, "_id" | "phas
 }
 
 /** 방장이 [시작]을 누르면 rooms.start가 부른다. players는 지금 연결된 학생, 들어온 순서대로. */
-export async function startGame(ctx: MutationCtx, room: Doc<"rooms">, players: Doc<"players">[]) {
+export async function startGame(
+  ctx: MutationCtx,
+  room: Doc<"rooms">,
+  players: Doc<"players">[],
+  rematch: boolean,
+) {
   const gameCount = room.gameCount ?? 0;
   const shift = gameCount % players.length;
   const order = [...players.slice(shift), ...players.slice(0, shift)];
@@ -58,10 +64,16 @@ export async function startGame(ctx: MutationCtx, room: Doc<"rooms">, players: D
   });
   await ctx.db.patch(room._id, { status: "playing", currentGameId: gameId, gameCount: gameCount + 1 });
   await schedule(ctx, { _id: gameId, phaseEndsAt: now + INTRO_MS });
+  await logEvent(ctx, "game_started", { roomId: room._id, gameId }, {
+    playerCount: players.length,
+    turnSeconds: room.turnSeconds,
+    gameIndex: gameCount + 1,
+    rematch,
+  });
 }
 
 /** 다음 차례로 넘긴다. 자리 비움이거나 나간 학생의 차례는 건너뛰고, 한 명만 남으면 끝낸다. */
-async function moveOn(ctx: MutationCtx, game: Doc<"games">) {
+async function moveOn(ctx: MutationCtx, game: Doc<"games">, reason: "complete" | "timeout") {
   const room = await ctx.db.get(game.roomId);
   if (!room || room.currentGameId !== game._id || game.phase === "done") return;
 
@@ -71,6 +83,16 @@ async function moveOn(ctx: MutationCtx, game: Doc<"games">) {
   if (game.phase === "drawing") {
     turns[game.currentTurn] = { ...turns[game.currentTurn], endedAt: now };
     next = game.currentTurn + 1;
+    const strokes = await ctx.db
+      .query("strokes")
+      .withIndex("by_game_turn", (q) => q.eq("gameId", game._id).eq("turn", game.currentTurn))
+      .collect();
+    await logEvent(ctx, "turn_submitted", { roomId: room._id, gameId: game._id }, {
+      turn: game.currentTurn,
+      reason,
+      durationMs: now - (game.phaseEndsAt - game.turnSeconds * 1000),
+      strokes: strokes.length,
+    });
   }
 
   const inRoom = await ctx.db
@@ -83,12 +105,20 @@ async function moveOn(ctx: MutationCtx, game: Doc<"games">) {
     const drawer = inRoom.find((p) => p._id === turns[next].playerId);
     if (enoughPlayers && drawer && now - drawer.lastSeenAt < AWAY_AFTER_MS) break;
     turns[next] = { ...turns[next], skipped: true, endedAt: now };
+    await logEvent(ctx, "turn_skipped", { roomId: room._id, gameId: game._id }, {
+      turn: next,
+      reason: !enoughPlayers ? "alone" : drawer ? "away" : "left",
+    });
     next++;
   }
 
   if (next >= turns.length) {
     await ctx.db.patch(game._id, { turns, phase: "done", phaseEndsAt: now });
     await ctx.db.patch(room._id, { status: "reveal" });
+    await logEvent(ctx, "game_revealed", { roomId: room._id, gameId: game._id }, {
+      durationMs: now - game.startedAt,
+      playerCount: inRoom.length,
+    });
     return;
   }
 
@@ -113,7 +143,7 @@ export const advance = internalMutation({
   handler: async (ctx, { gameId, endsAt }) => {
     const game = await ctx.db.get(gameId);
     if (!game || game.phaseEndsAt !== endsAt) return;
-    await moveOn(ctx, game);
+    await moveOn(ctx, game, "timeout");
   },
 });
 
@@ -126,7 +156,7 @@ export const complete = mutation({
     const { player, game } = found;
     if (game.phase !== "drawing" || game.currentTurn !== turn) return;
     if (game.turns[turn].playerId !== player._id) return;
-    await moveOn(ctx, game);
+    await moveOn(ctx, game, "complete");
   },
 });
 
@@ -141,6 +171,7 @@ export const reroll = mutation({
     if (game.phase !== "intro" || game.rerolled) return;
     const phaseEndsAt = Date.now() + INTRO_MS;
     await ctx.db.patch(game._id, { topic: randomTopic(game.topic), rerolled: true, phaseEndsAt });
+    await logEvent(ctx, "topic_rerolled", { roomId: room._id, gameId: game._id });
     await schedule(ctx, { _id: game._id, phaseEndsAt });
   },
 });
