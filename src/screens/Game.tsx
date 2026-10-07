@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { api } from '../../convex/_generated/api'
 import { ERASER_COLOR, ERASER_WIDTH, NEXT_UP_WARNING_MS, PEN_COLORS, PEN_WIDTHS } from '../../convex/constants'
 import DrawingCanvas from '../canvas/DrawingCanvas'
+import FitArea from '../canvas/FitArea'
 import type { Stroke } from '../canvas/draw'
 import { useNow } from '../useNow'
 import type { Game as GameData, Room } from './types'
@@ -34,7 +35,7 @@ export default function Game({ sessionId, room }: { sessionId: string; room: Roo
   const remainingMs = Math.max(0, game.phaseEndsAt - now)
 
   return (
-    <main className="screen game">
+    <main className={`screen game${game.phase === 'done' ? ' scroll' : ''}`}>
       <header className="game-header">
         <span className="muted">주제</span>
         <strong>{game.topic}</strong>
@@ -87,11 +88,10 @@ function Turn({ sessionId, game, remainingMs }: { sessionId: string; game: GameD
           {game.currentTurn + 1}. {turn.stage}
         </span>
         <span className="stage-hint">{turn.hint}</span>
+        <span className={`timer-text${ratio < 0.2 ? ' low' : ''}`}>{Math.ceil(remainingMs / 1000)}초</span>
       </div>
-
       <div className="timer">
         <div className={`timer-bar${ratio < 0.2 ? ' low' : ''}`} style={{ width: `${ratio * 100}%` }} />
-        <span className="timer-text">{Math.ceil(remainingMs / 1000)}초</span>
       </div>
 
       <div className={`turn-layout${previous.length ? '' : ' no-previous'}`}>
@@ -135,15 +135,17 @@ function MyCanvas({ sessionId, turn }: { sessionId: string; turn: number }) {
 
   return (
     <>
-      <DrawingCanvas
-        strokes={strokes}
-        editable
-        color={erasing ? ERASER_COLOR : color}
-        width={erasing ? ERASER_WIDTH : width}
-        onStrokeEnd={(s) => {
-          addStroke({ sessionId, turn, ...s }).catch(() => {})
-        }}
-      />
+      <FitArea>
+        <DrawingCanvas
+          strokes={strokes}
+          editable
+          color={erasing ? ERASER_COLOR : color}
+          width={erasing ? ERASER_WIDTH : width}
+          onStrokeEnd={(s) => {
+            addStroke({ sessionId, turn, ...s }).catch(() => {})
+          }}
+        />
+      </FitArea>
       <div className="toolbar">
         <div className="colors">
           {PEN_COLORS.map((c) => (
@@ -189,7 +191,11 @@ function MyCanvas({ sessionId, turn }: { sessionId: string; turn: number }) {
 
 function LiveCanvas({ sessionId, turn }: { sessionId: string; turn: number }) {
   const strokes = useQuery(api.strokes.panel, { sessionId, turn }) ?? NO_STROKES
-  return <DrawingCanvas strokes={strokes} />
+  return (
+    <FitArea>
+      <DrawingCanvas strokes={strokes} />
+    </FitArea>
+  )
 }
 
 function Panel({ sessionId, turn, label, small }: { sessionId: string; turn: number; label: string; small?: boolean }) {
