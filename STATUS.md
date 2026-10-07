@@ -19,7 +19,6 @@
 - [x] 화면: 홈, 방 만들기/들어가기, 대기실, 임시 게임 화면 (`src/screens/`)
 - [x] T0: PC 브라우저 여러 창으로 확인 (2026-10-07 통과)
 
-임시 기능: `rooms.backToLobby`와 `src/screens/Playing.tsx`는 M2/M4에서 바꾼다.
 
 ## M4 공개, 한 판 더, 교사 페이지 (진행 중)
 
