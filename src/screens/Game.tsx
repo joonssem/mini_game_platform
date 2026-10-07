@@ -9,12 +9,16 @@ export default function Game({ sessionId, room }: { sessionId: string; room: Roo
   const leave = useMutation(api.rooms.leave)
   const now = useNow()
 
-  if (!game) {
+  if (game === undefined) {
     return (
       <main className="screen center">
         <p className="muted">게임을 불러오는 중…</p>
       </main>
     )
+  }
+  if (game === null) {
+    // 방은 게임 중인데 게임 정보가 없을 때 (예: 예전 버전에서 시작한 방). 빠져나갈 길을 준다.
+    return <Done sessionId={sessionId} isHost={room.isHost} message="게임 정보를 찾을 수 없어요." />
   }
 
   const remainingMs = Math.max(0, game.phaseEndsAt - now)
@@ -95,15 +99,23 @@ function Turn({ sessionId, game, remainingMs }: { sessionId: string; game: GameD
   )
 }
 
-function Done({ sessionId, isHost }: { sessionId: string; isHost: boolean }) {
+function Done({ sessionId, isHost, message }: { sessionId: string; isHost: boolean; message?: string }) {
   const backToLobby = useMutation(api.rooms.backToLobby)
+  const leave = useMutation(api.rooms.leave)
   return (
     <section className="game-main center">
-      <p className="topic">다 그렸어요!</p>
-      <p className="muted">공개 화면은 M4에서 만들어요</p>
-      {isHost && (
+      <p className="topic">{message ?? '다 그렸어요!'}</p>
+      {!message && <p className="muted">공개 화면은 M4에서 만들어요</p>}
+      {isHost ? (
         <button className="btn primary" onClick={() => backToLobby({ sessionId })}>
           대기실로 돌아가기
+        </button>
+      ) : (
+        <p className="muted">방장이 대기실로 돌아가면 다시 시작할 수 있어요</p>
+      )}
+      {message && (
+        <button className="btn ghost" onClick={() => leave({ sessionId })}>
+          나가기
         </button>
       )}
     </section>
