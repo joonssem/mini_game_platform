@@ -42,4 +42,5 @@
 - [x] 구경: 다른 학생의 획이 선 하나 단위로 나타남
 - [x] 앞 칸: 바로 앞 칸은 크게, 그 전 칸은 작게. 다 그리면 만화 전체 보기
 - [x] T0: PC 브라우저로 그리기, 도구, 실시간 구경, 앞 칸, 만화 보기 확인 (2026-10-07)
-- [ ] Vercel 배포 (`vercel.json`) → T1: 학교 iPad로 손가락·Pencil 그리기 확인
+- [x] Vercel 배포: https://mini-game-platform-khaki.vercel.app (운영 Convex 연결 확인, 2026-10-07)
+- [ ] T1: 학교 iPad로 손가락·Pencil 그리기 확인

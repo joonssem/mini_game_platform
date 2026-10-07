@@ -8,6 +8,7 @@
 |---|---|
 | Convex | 무료 플랜. 이전 수업 활동과 같은 계정에 새 프로젝트 `mini-game-platform`을 만듦. 개발 배포 지역: **ap-southeast-2 (호주 시드니)** — 국외 처리 확인 시 참고 |
 | Vercel | 개인 Hobby (무료) |
+| 배포 | Vercel Production은 `main` 브랜치를 자동 배포. 운영 Convex 배포(개발과 분리)에 연결됨. Vercel 환경 변수는 `CONVEX_DEPLOY_KEY`(Secret, Production만) 하나 |
 | GitHub ↔ Vercel | 같은 GitHub 계정으로 연결됨. 새 저장소를 바로 Import할 수 있다 |
 
 ## 학교 기기와 네트워크
