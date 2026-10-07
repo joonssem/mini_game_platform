@@ -43,6 +43,13 @@ $env:NODE_OPTIONS="--use-system-ca"; npx convex dev
 - `.env.local`은 git에 올라가지 않는다 (`.gitignore`).
 - 교사 코드(`TEACHER_PASSCODE`)는 Convex 대시보드 → Settings → Environment Variables에만 넣는다. 개발 배포와 운영(prod) 배포에 각각 넣어야 한다. Vercel에는 넣지 않는다.
 
+## 교사 페이지
+
+`/teacher` (예: 배포 주소 뒤에 `/teacher`). 최근 24시간 안에 끝난 만화를 이미지로 저장한다.
+
+비밀번호 설정: Convex 대시보드 → 프로젝트 → Settings → Environment Variables → `TEACHER_PASSCODE`.
+**Development와 Production 배포에 각각** 넣는다 (배포 선택을 바꿔 가며). 8자 이상, 추측하기 어려운 값으로.
+
 ## 배포 (Vercel)
 
 개발(로컬)과 운영(Vercel)은 서로 다른 Convex 배포를 쓴다.
