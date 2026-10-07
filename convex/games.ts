@@ -158,6 +158,7 @@ export const myGame = query({
     if (!game) return null;
 
     return {
+      id: game._id,
       phase: game.phase,
       topic: game.topic,
       canReroll: room.hostSessionId === sessionId && game.phase === "intro" && !game.rerolled,

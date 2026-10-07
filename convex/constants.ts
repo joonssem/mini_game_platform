@@ -38,3 +38,8 @@ export const ERASER_WIDTH = 0.045;
 export const MAX_STROKE_POINTS = 600;
 /** 시간이 끝나는 순간 손을 떼서 늦게 도착한 획도 받아 주는 여유 시간 */
 export const STROKE_GRACE_MS = 2_000;
+
+// 교사 페이지
+export const TEACHER_SESSION_MS = 12 * 60 * 60 * 1000;
+export const TEACHER_MAX_FAILURES = 10;
+export const TEACHER_LOCK_MS = 15 * 60 * 1000;

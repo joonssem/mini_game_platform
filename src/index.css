@@ -266,12 +266,6 @@ input {
   overflow: hidden;
 }
 
-.screen.game.scroll {
-  height: auto;
-  min-height: 100dvh;
-  overflow: visible;
-}
-
 .game-header {
   display: flex;
   align-items: center;
@@ -526,10 +520,126 @@ input {
   box-shadow: 0 0 0 3px var(--ink);
 }
 
-.comic {
+/* ---------- 공개 ---------- */
+
+.reveal-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.reveal-panel {
+  position: relative;
+  opacity: 0.35;
+  transform: scale(0.97);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.reveal-panel.shown {
+  opacity: 1;
+  transform: none;
+}
+
+.hidden-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--muted);
+  background: var(--accent-soft);
+}
+
+.reveal-label {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.reveal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-shrink: 0;
+  min-height: 68px;
+}
+
+/* ---------- 교사 페이지 ---------- */
+
+.screen.teacher {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.teacher-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.teacher-games {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.teacher-game {
+  font: inherit;
+  width: 100%;
+  display: flex;
+  align-items: center;
   gap: 16px;
+  padding: 12px 16px;
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.teacher-game strong {
+  flex: 1;
+}
+
+.teacher-game.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.teacher-comic {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 32px;
+}
+
+.teacher-comic img {
+  width: 100%;
+  border-radius: 12px;
+  border: 2px solid var(--line);
+  /* iPad에서 길게 눌러 "사진에 저장"이 되도록 */
+  -webkit-touch-callout: default;
+  -webkit-user-select: auto;
+  user-select: auto;
+}
+
+.teacher-comic a.btn {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
 }
 
 .rotate-hint {

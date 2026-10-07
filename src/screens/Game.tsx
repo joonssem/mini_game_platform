@@ -1,10 +1,12 @@
 import { useMutation, useQuery } from 'convex/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { api } from '../../convex/_generated/api'
 import { ERASER_COLOR, ERASER_WIDTH, NEXT_UP_WARNING_MS, PEN_COLORS, PEN_WIDTHS } from '../../convex/constants'
 import DrawingCanvas from '../canvas/DrawingCanvas'
 import FitArea from '../canvas/FitArea'
+import { comicColumns } from '../canvas/composeComic'
 import type { Stroke } from '../canvas/draw'
+import { errorMessage } from '../session'
 import { useNow } from '../useNow'
 import type { Game as GameData, Room } from './types'
 
@@ -35,7 +37,7 @@ export default function Game({ sessionId, room }: { sessionId: string; room: Roo
   const remainingMs = Math.max(0, game.phaseEndsAt - now)
 
   return (
-    <main className={`screen game${game.phase === 'done' ? ' scroll' : ''}`}>
+    <main className="screen game">
       <header className="game-header">
         <span className="muted">주제</span>
         <strong>{game.topic}</strong>
@@ -46,12 +48,7 @@ export default function Game({ sessionId, room }: { sessionId: string; room: Roo
 
       {game.phase === 'intro' && <Intro sessionId={sessionId} game={game} remainingMs={remainingMs} />}
       {game.phase === 'drawing' && <Turn sessionId={sessionId} game={game} remainingMs={remainingMs} />}
-      {game.phase === 'done' && (
-        <>
-          <Comic sessionId={sessionId} game={game} />
-          <Done sessionId={sessionId} isHost={room.isHost} />
-        </>
-      )}
+      {game.phase === 'done' && <Reveal key={game.id} sessionId={sessionId} game={game} isHost={room.isHost} />}
 
       {game.phase !== 'done' && <TurnStrip game={game} />}
 
@@ -217,35 +214,89 @@ function Panel({ sessionId, turn, label, small }: { sessionId: string; turn: num
   )
 }
 
-/** 다 그린 만화. M4에서 한 칸씩 공개하는 화면으로 바꾼다. */
-function Comic({ sessionId, game }: { sessionId: string; game: GameData }) {
+const REVEAL_STEP_MS = 1200
+
+/** 공개 화면: 칸이 하나씩 나타나고, 다 나타나면 한 판 더. */
+function Reveal({ sessionId, game, isHost }: { sessionId: string; game: GameData; isHost: boolean }) {
+  const count = game.turns.length
+  const [shown, setShown] = useState(0)
+  const [error, setError] = useState('')
+  const rematch = useMutation(api.rooms.rematch)
+  const backToLobby = useMutation(api.rooms.backToLobby)
+
+  useEffect(() => {
+    if (shown >= count) return
+    const timer = window.setTimeout(() => setShown((n) => n + 1), shown === 0 ? 600 : REVEAL_STEP_MS)
+    return () => window.clearTimeout(timer)
+  }, [shown, count])
+
+  const cols = comicColumns(count)
+  const rows = Math.ceil(count / cols)
+  const allShown = shown >= count
+
+  function run(action: Promise<unknown>) {
+    setError('')
+    action.catch((err) => setError(errorMessage(err)))
+  }
+
   return (
-    <section className="comic">
-      {game.turns.map((t, i) => (
-        <Panel key={i} sessionId={sessionId} turn={i} label={`${i + 1}. ${t.stage} · ${t.number}번`} />
-      ))}
+    <section className="game-main">
+      <FitArea ratio={((cols * 4) / (rows * 3)) * 0.97}>
+        <div className="reveal-grid" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
+          {game.turns.map((t, i) => (
+            <RevealPanel key={i} sessionId={sessionId} turn={i} label={`${i + 1}. ${t.stage} · ${t.number}번`} visible={i < shown} />
+          ))}
+        </div>
+      </FitArea>
+      <div className="reveal-actions">
+        {error && <p className="error">{error}</p>}
+        {!allShown ? (
+          <p className="muted">한 칸씩 공개하는 중…</p>
+        ) : isHost ? (
+          <>
+            <button className="btn primary big" onClick={() => run(rematch({ sessionId }))}>
+              한 판 더
+            </button>
+            <button className="btn" onClick={() => run(backToLobby({ sessionId }))}>
+              대기실로 (새 친구 받기)
+            </button>
+          </>
+        ) : (
+          <p className="muted">방장이 "한 판 더"를 누르면 다시 시작해요</p>
+        )}
+      </div>
     </section>
   )
 }
 
-function Done({ sessionId, isHost, message }: { sessionId: string; isHost: boolean; message?: string }) {
+function RevealPanel({ sessionId, turn, label, visible }: { sessionId: string; turn: number; label: string; visible: boolean }) {
+  const strokes = useQuery(api.strokes.panel, { sessionId, turn })
+  return (
+    <div className={`reveal-panel${visible ? ' shown' : ''}`}>
+      {visible ? <DrawingCanvas strokes={strokes ?? NO_STROKES} /> : <div className="drawing hidden-panel">?</div>}
+      <span className="reveal-label">
+        {label}
+        {visible && strokes?.length === 0 && ' (빈 칸)'}
+      </span>
+    </div>
+  )
+}
+
+/** 게임 정보가 없는 방에서 빠져나가는 화면 */
+function Done({ sessionId, isHost, message }: { sessionId: string; isHost: boolean; message: string }) {
   const backToLobby = useMutation(api.rooms.backToLobby)
   const leave = useMutation(api.rooms.leave)
   return (
     <section className="game-main center">
-      <p className="topic">{message ?? '다 그렸어요!'}</p>
-      {isHost ? (
+      <p className="topic">{message}</p>
+      {isHost && (
         <button className="btn primary" onClick={() => backToLobby({ sessionId })}>
           대기실로 돌아가기
         </button>
-      ) : (
-        <p className="muted">방장이 대기실로 돌아가면 다시 시작할 수 있어요</p>
       )}
-      {message && (
-        <button className="btn ghost" onClick={() => leave({ sessionId })}>
-          나가기
-        </button>
-      )}
+      <button className="btn ghost" onClick={() => leave({ sessionId })}>
+        나가기
+      </button>
     </section>
   )
 }

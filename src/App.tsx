@@ -3,11 +3,17 @@ import { useState } from 'react'
 import { api } from '../convex/_generated/api'
 import { getSessionId } from './session'
 import { useHeartbeat } from './useHeartbeat'
+import Game from './screens/Game'
 import Home from './screens/Home'
 import Lobby from './screens/Lobby'
-import Game from './screens/Game'
+import Teacher from './screens/Teacher'
 
 export default function App() {
+  if (window.location.pathname.startsWith('/teacher')) return <Teacher />
+  return <Player />
+}
+
+function Player() {
   const [sessionId] = useState(getSessionId)
   const room = useQuery(api.rooms.myRoom, { sessionId })
   useHeartbeat(sessionId, !!room)

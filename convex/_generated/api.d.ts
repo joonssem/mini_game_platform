@@ -12,6 +12,7 @@ import type * as constants from "../constants.js";
 import type * as games from "../games.js";
 import type * as rooms from "../rooms.js";
 import type * as strokes from "../strokes.js";
+import type * as teacher from "../teacher.js";
 import type * as topics from "../topics.js";
 
 import type {
@@ -25,6 +26,7 @@ declare const fullApi: ApiFromModules<{
   games: typeof games;
   rooms: typeof rooms;
   strokes: typeof strokes;
+  teacher: typeof teacher;
   topics: typeof topics;
 }>;
 

@@ -37,6 +37,18 @@ export default defineSchema({
     startedAt: v.number(),
   }).index("by_room", ["roomId"]),
 
+  // 교사 페이지 로그인. 토큰 원문이 아니라 해시만 저장한다.
+  teacherSessions: defineTable({
+    tokenHash: v.string(),
+    expiresAt: v.number(),
+  }).index("by_hash", ["tokenHash"]),
+
+  /** 교사 비밀번호 연속 실패 제한 (문서 하나만 쓴다) */
+  teacherGuard: defineTable({
+    failures: v.number(),
+    lockedUntil: v.number(),
+  }),
+
   // 획 하나가 문서 하나. 실시간 구경과 공개 화면이 같은 데이터를 쓴다.
   strokes: defineTable({
     gameId: v.id("games"),

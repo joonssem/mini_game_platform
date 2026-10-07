@@ -222,7 +222,22 @@ export const start = mutation({
   },
 });
 
-/** 확인용 임시 기능. M4의 "한 판 더"가 생기면 지운다. */
+/** 공개 화면에서 같은 사람끼리 바로 다음 판. 첫 순서는 한 칸 돌아간다. */
+export const rematch = mutation({
+  args: { sessionId: v.string() },
+  handler: async (ctx, { sessionId }) => {
+    const room = await requireHost(ctx, sessionId);
+    if (room.status !== "reveal") fail("지금은 다시 시작할 수 없어요.");
+    const now = Date.now();
+    const active = (await roomPlayers(ctx, room._id)).filter(
+      (p) => now - p.lastSeenAt < AWAY_AFTER_MS,
+    );
+    if (active.length < MIN_PLAYERS) fail(`${MIN_PLAYERS}명 이상 있어야 시작할 수 있어요.`);
+    await startGame(ctx, room, active);
+  },
+});
+
+/** 방장이 대기실로 돌아간다. 새 친구가 들어올 수 있게 하거나, 게임 정보가 없는 방에서 빠져나올 때 쓴다. */
 export const backToLobby = mutation({
   args: { sessionId: v.string() },
   handler: async (ctx, { sessionId }) => {
