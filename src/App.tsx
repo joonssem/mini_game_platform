@@ -5,7 +5,7 @@ import { getSessionId } from './session'
 import { useHeartbeat } from './useHeartbeat'
 import Home from './screens/Home'
 import Lobby from './screens/Lobby'
-import Playing from './screens/Playing'
+import Game from './screens/Game'
 
 export default function App() {
   const [sessionId] = useState(getSessionId)
@@ -21,5 +21,5 @@ export default function App() {
   }
   if (room === null) return <Home sessionId={sessionId} />
   if (room.status === 'lobby') return <Lobby sessionId={sessionId} room={room} />
-  return <Playing sessionId={sessionId} room={room} />
+  return <Game sessionId={sessionId} room={room} />
 }

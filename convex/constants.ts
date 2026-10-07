@@ -14,3 +14,7 @@ export const TAKEOVER_AFTER_MS = 20_000;
 /** 대기실에서 목록에서 빠지는 무응답 시간, 게임 중에는 "자리 비움" 기준 */
 export const AWAY_AFTER_MS = 60_000;
 export const ROOM_TTL_MS = 24 * 60 * 60 * 1000;
+/** 주제 공개 화면 시간. 방장이 주제를 다시 뽑으면 다시 이만큼 기다린다. */
+export const INTRO_MS = 5_000;
+/** 화면에 "다음은 너야!"를 띄우는 남은 시간 */
+export const NEXT_UP_WARNING_MS = 5_000;

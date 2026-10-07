@@ -9,7 +9,9 @@
  */
 
 import type * as constants from "../constants.js";
+import type * as games from "../games.js";
 import type * as rooms from "../rooms.js";
+import type * as topics from "../topics.js";
 
 import type {
   ApiFromModules,
@@ -19,7 +21,9 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   constants: typeof constants;
+  games: typeof games;
   rooms: typeof rooms;
+  topics: typeof topics;
 }>;
 
 /**

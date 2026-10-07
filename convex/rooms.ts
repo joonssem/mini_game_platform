@@ -19,6 +19,7 @@ import {
   TAKEOVER_AFTER_MS,
   TURN_SECONDS_OPTIONS,
 } from "./constants";
+import { startGame } from "./games";
 
 // 방 만들기, 입장, 대기실, 방장. 규칙은 docs/PRD.md 5장, 6장.
 // 다른 학생의 sessionId는 절대 화면으로 내보내지 않는다 (알면 그 학생 행세를 할 수 있다).
@@ -217,12 +218,11 @@ export const start = mutation({
       (p) => now - p.lastSeenAt < AWAY_AFTER_MS,
     );
     if (active.length < MIN_PLAYERS) fail(`${MIN_PLAYERS}명 이상 모여야 시작할 수 있어요.`);
-    // M2에서 여기서 게임(games)을 만든다.
-    await ctx.db.patch(room._id, { status: "playing" });
+    await startGame(ctx, room, active);
   },
 });
 
-/** M1 확인용 임시 기능. M4의 "한 판 더"가 생기면 지운다. */
+/** 확인용 임시 기능. M4의 "한 판 더"가 생기면 지운다. */
 export const backToLobby = mutation({
   args: { sessionId: v.string() },
   handler: async (ctx, { sessionId }) => {
@@ -261,6 +261,11 @@ export const deleteRoom = internalMutation({
   args: { roomId: v.id("rooms") },
   handler: async (ctx, { roomId }) => {
     for (const player of await roomPlayers(ctx, roomId)) await ctx.db.delete(player._id);
+    const games = await ctx.db
+      .query("games")
+      .withIndex("by_room", (q) => q.eq("roomId", roomId))
+      .collect();
+    for (const game of games) await ctx.db.delete(game._id);
     if (await ctx.db.get(roomId)) await ctx.db.delete(roomId);
   },
 });

@@ -242,3 +242,156 @@ input {
   background: #fff1e6;
   color: var(--warn);
 }
+
+/* ---------- 게임 ---------- */
+
+.btn.small {
+  min-height: 40px;
+  font-size: 15px;
+  padding: 0 12px;
+}
+
+.game {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.game-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.game-header strong {
+  font-size: 18px;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.topic {
+  font-size: 36px;
+  font-weight: 800;
+  margin: 8px 0;
+  line-height: 1.3;
+}
+
+.stage {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.stage-label {
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.stage-hint {
+  color: var(--muted);
+  font-size: 18px;
+}
+
+.timer {
+  position: relative;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.timer-bar {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.25s linear;
+}
+
+.timer-bar.low {
+  background: var(--warn);
+}
+
+.timer-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.canvas-placeholder {
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  max-height: 60vh;
+  border: 2px dashed var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 22px;
+}
+
+.next-up {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.turn-strip {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 8px;
+}
+
+.turn {
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--surface);
+}
+
+.turn.current {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.turn.done,
+.turn.skipped {
+  opacity: 0.5;
+}
+
+.turn.me .turn-number {
+  color: var(--accent);
+}
+
+.turn-stage {
+  font-weight: 700;
+}
+
+.turn-number {
+  font-size: 14px;
+  color: var(--muted);
+}
